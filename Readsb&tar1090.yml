@@ -1,0 +1,67 @@
+version: '3'
+
+networks:
+  sdr_network:
+    driver: bridge
+
+volumes:
+  readsbpb_rrd:
+  readsbpb_autogain:
+
+services:
+  readsb:
+    image: ghcr.io/sdr-enthusiasts/docker-readsb-protobuf:latest
+    tty: true
+    container_name: readsb
+    hostname: readsb
+    restart: always
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    ports:
+      - 8080:8080
+      - 30005:30005
+    environment:
+      - TZ=PST
+      - READSB_DCFILTER=true
+      - READSB_DEVICE_TYPE=rtlsdr
+      - READSB_FIX=true
+      - READSB_GAIN=autogain
+      - READSB_LAT=33.593629429968985
+      - READSB_LON=-117.71286478066973
+      - READSB_MODEAC=true
+      - READSB_RX_LOCATION_ACCURACY=2
+      - READSB_STATS_RANGE=true
+      - READSB_NET_ENABLE=true
+    volumes:
+      - readsbpb_rrd:/run/collectd
+      - readsbpb_autogain:/run/autogain
+      - /proc/diskstats:/proc/diskstats:ro
+    tmpfs:
+      - /run/readsb:size=64M
+      - /var/log:size=32M
+    networks:
+      - sdr_network
+
+  tar1090:
+    image: ghcr.io/sdr-enthusiasts/docker-tar1090:latest
+    tty: true
+    container_name: tar1090
+    restart: always
+    environment:
+      - TZ=PST
+      - BEASTHOST=readsb:8080
+      - MLATHOST=adsbx
+      - LAT=33.593629429968985
+      - LONG=-117.71286478066973
+    volumes:
+      - /opt/adsb/tar1090/globe_history:/var/globe_history
+      - /opt/adsb/tar1090/timelapse1090:/var/timelapse1090
+      - /opt/adsb/tar1090/graphs1090:/var/lib/collectd
+      - /proc/diskstats:/proc/diskstats:ro
+    ports:
+      - 8078:80
+    tmpfs:
+      - /run:exec,size=64M
+      - /var/log
+    networks:
+      - sdr_network

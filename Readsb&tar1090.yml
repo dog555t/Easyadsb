@@ -49,10 +49,10 @@ services:
     restart: always
     environment:
       - TZ=PST
-      - BEASTHOST=readsb:8080
-      - MLATHOST=adsbx
-      - LAT=33.593629429968985
-      - LONG=-117.71286478066973
+      - BEASTHOST=readsbip
+      - MLATHOST=adsbxip
+      - LAT=Enter
+      - LONG=-Enter
     volumes:
       - /opt/adsb/tar1090/globe_history:/var/globe_history
       - /opt/adsb/tar1090/timelapse1090:/var/timelapse1090
